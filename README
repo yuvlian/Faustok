@@ -1,7 +1,7 @@
 [about]
 project = "faustok"
 dev = ["yuvlian"]
-repo = "<https://github.com/yuvlian/Faustok>"
+repo = "https://github.com/yuvlian/Faustok"
 license = "BSD 3-Clause"
 
 [version]
@@ -23,6 +23,6 @@ help = ".help"
 about = ".about"
 autofix = ".autofix true"
 check_autofix = ".check_autofix @yuvlian"
-vid = ".vid <https://vt.tiktok.com/ZS2fMDLkU/>"
-mp3 = ".mp3 <https://vt.tiktok.com/ZS2fMDLkU/>"
-img = ".img <https://vt.tiktok.com/ZS2g5AWKk/>"
+vid = ".vid https://vt.tiktok.com/ZS2fMDLkU/"
+mp3 = ".mp3 https://vt.tiktok.com/ZS2fMDLkU/"
+img = ".img https://vt.tiktok.com/ZS2g5AWKk/"
