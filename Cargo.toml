@@ -1,6 +1,8 @@
+cargo-features = ["codegen-backend"]
+
 [package]
 name = "faustok"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
@@ -11,17 +13,48 @@ serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.122"
 tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread", "sync"] }
 
-[profile.release]
-strip = true
-lto = true
-opt-level = 3
-codegen-units = 1
-panic = "abort"
-
 [[bin]]
 name = "faustok"
 path = "src/main.rs"
 
+# Yes, you can use this repo as a dependency to download TikTok stuff.
 [lib]
 name = "tiklydown"
 path = "src/tiklydown.rs"
+
+# This is the most optimized profile possible 
+# besides setting panic to abort,
+# which is unideal for release,
+# but whatever.
+[profile.release]
+strip = true                  # Automatically strip symbols from the binary.
+lto = true                    # Link-time optimization.
+opt-level = 3                 # Optimize for speed.
+codegen-units = 1             # Maximum size reduction optimization.
+panic = "abort"               # Specifies how panics are handled.
+
+# Try to reduce compile time as much as possible
+[profile.dev]
+codegen-backend = "cranelift" # Alternative codegen backend. This has the potential to improve compilation times in debug mode.
+opt-level = 0                 # Binary optimization level, 0 means no optimizations (default 0).
+debug = true                  # Whether to include debug information in the binary (default true).
+split-debuginfo = "..."       # This is platform-dependent; helps with faster debug info loading on supported platforms.
+debug-assertions = true       # Enables debug assertions (for panics, bounds checking, etc. default true).
+overflow-checks = false       # Checks for integer overflows at runtime (default true).
+lto = "off"                   # Link-time optimization (default false).
+panic = "abort"               # Specifies how panics are handled (default unwind).
+incremental = true            # Enables incremental compilation, making builds faster (default true).
+codegen-units = 512           # Number of codegen units, higher means bigger file size but faster compile (default 256).
+rpath = false                 # Specifies whether to include rpath in the output (default false).
+strip = "none"                # Automatically strip symbols from the binary (default none)
+
+[profile.dev.build-override]
+codegen-backend = "cranelift" # Alternative codegen backend. This has the potential to improve compilation times in debug mode.
+opt-level = 0                 # Binary optimization level, 0 means no optimizations (default 0).
+debug = true                  # Whether to include debug information in the binary (default true).
+split-debuginfo = "..."       # This is platform-dependent; helps with faster debug info loading on supported platforms.
+debug-assertions = true       # Enables debug assertions (for panics, bounds checking, etc. default true).
+overflow-checks = false       # Checks for integer overflows at runtime (default true).
+incremental = true            # Enables incremental compilation, making builds faster (default true).
+codegen-units = 512           # Number of codegen units, higher means bigger file size but faster compile (default 256).
+strip = "none"                # Automatically strip symbols from the binary (default none)

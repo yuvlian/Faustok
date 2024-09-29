@@ -1,13 +1,9 @@
-[about]
-project = "faustok"
-dev = ["yuvlian"]
-repo = "https://github.com/yuvlian/Faustok"
-license = "BSD 3-Clause"
+[prebuilt]
+available = true
 
-[version]
-bot = "0.1.0"
-poise = "0.6.1"
-rust = "1.83.0-nightly"
+[command.types]
+prefix = true
+slash = true
 
 [commands]
 help = "Shows this message"

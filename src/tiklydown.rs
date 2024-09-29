@@ -6,9 +6,8 @@ use std::sync::LazyLock;
 
 static REQWEST_CLIENT: LazyLock<Client> = LazyLock::new(Client::new);
 
-static TIKLYDOWN_BASE_URL: LazyLock<String> = LazyLock::new(|| {
-    String::from("https://api.tiklydown.eu.org/api/download?url=")
-});
+static TIKLYDOWN_BASE_URL: LazyLock<String> =
+    LazyLock::new(|| String::from("https://api.tiklydown.eu.org/api/download?url="));
 
 #[derive(Deserialize)]
 pub struct TiklydownApiOne {
@@ -39,7 +38,10 @@ fn format_url(url: &str) -> String {
     format!("{}{}", *TIKLYDOWN_BASE_URL, url)
 }
 
-pub async fn get_video(v_url: &str, filename: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub async fn get_video(
+    v_url: &str,
+    filename: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let url = format_url(v_url);
     let response = REQWEST_CLIENT.get(&url).send().await?;
     let api_response: TiklydownApiOne = response.json().await?;
@@ -56,7 +58,10 @@ pub async fn get_video(v_url: &str, filename: &str) -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-pub async fn get_image(i_url: &str, userid: &str) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn get_image(
+    i_url: &str,
+    userid: &str,
+) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
     let url = format_url(i_url);
     let response = REQWEST_CLIENT.get(&url).send().await?;
     let api_response: TiklydownApiOne = response.json().await?;
@@ -79,7 +84,10 @@ pub async fn get_image(i_url: &str, userid: &str) -> Result<Vec<String>, Box<dyn
     Ok(filenames)
 }
 
-pub async fn get_music(m_url: &str, filename: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub async fn get_music(
+    m_url: &str,
+    filename: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let url = format_url(m_url);
     let response = REQWEST_CLIENT.get(&url).send().await?;
     let api_response: TiklydownApiOne = response.json().await?;

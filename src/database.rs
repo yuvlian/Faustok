@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -17,7 +17,7 @@ pub fn get_token() -> Result<Token, Box<dyn std::error::Error>> {
     // Read the token file
     let token_file = fs::read_to_string("Token.json")
         .map_err(|e| format!("Failed to read Token.json: {}", e))?;
-    
+
     // Parse the token from JSON
     let token: Token = serde_json::from_str(&token_file)
         .map_err(|e| format!("Failed to parse Token.json: {}", e))?;
@@ -37,8 +37,8 @@ pub fn get_user_setting() -> Result<UserSetting, Box<dyn std::error::Error + Sen
     }
 
     // Read the user settings file
-    let user_file = fs::read_to_string("User.json")
-        .map_err(|e| format!("Failed to read User.json: {}", e))?;
+    let user_file =
+        fs::read_to_string("User.json").map_err(|e| format!("Failed to read User.json: {}", e))?;
 
     // Parse the user settings from JSON
     let user_setting: UserSetting = serde_json::from_str(&user_file)
@@ -47,10 +47,13 @@ pub fn get_user_setting() -> Result<UserSetting, Box<dyn std::error::Error + Sen
     Ok(user_setting)
 }
 
-pub fn update_user_setting(user_id: &str, value: bool) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub fn update_user_setting(
+    user_id: &str,
+    value: bool,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Read the existing user settings file
-    let user_file = fs::read_to_string("User.json")
-        .map_err(|e| format!("Failed to read User.json: {}", e))?;
+    let user_file =
+        fs::read_to_string("User.json").map_err(|e| format!("Failed to read User.json: {}", e))?;
 
     // Parse the existing user settings from JSON
     let mut user_setting: UserSetting = serde_json::from_str(&user_file)
@@ -62,7 +65,7 @@ pub fn update_user_setting(user_id: &str, value: bool) -> Result<(), Box<dyn std
     // Serialize the updated user settings back to JSON
     let updated_content = serde_json::to_string_pretty(&user_setting)
         .map_err(|e| format!("Failed to serialize updated user settings: {}", e))?;
-    
+
     // Write the updated content back to the user settings file
     fs::write("User.json", updated_content)
         .map_err(|e| format!("Failed to write User.json: {}", e))?;
