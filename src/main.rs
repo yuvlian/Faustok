@@ -229,37 +229,39 @@ async fn event_handler(
             println!("Logged in as {}", data_about_bot.user.name);
         }
         serenity::FullEvent::Message { new_message } => {
-            // Get autofix settings
-            let settings = data.user_settings.read().await;
-            let user_id = new_message.author.id.to_string();
-
-            // Get message string
             let content = &new_message.content;
 
-            // Get bools
-            let should_replace = *settings.user_map.get(&user_id).unwrap_or(&false);
-            let is_command =
-                content.contains(".vid") || content.contains(".img") || content.contains(".mp3");
-            let is_tiktok = TIKTOK_REGEX.is_match(content);
+            // Check if the content matches the TIKTOK_REGEX
+            if TIKTOK_REGEX.is_match(content) {
+                // Get autofix settings
+                let settings = data.user_settings.read().await;
+                let user_id = new_message.author.id.to_string();
 
-            // Bool check
-            match (is_command, should_replace, is_tiktok) {
-                (true, _, true) => {
-                    // If a command is present and has a tiktok url, suppress embeds.
-                    let remove_embed = serenity::MessageFlags::SUPPRESS_EMBEDS;
-                    let embed_remover = serenity::EditMessage::new().flags(remove_embed);
-                    new_message.clone().edit(ctx, embed_remover).await?;
-                }
-                (false, true, true) => {
-                    // If auto-replace is enabled and the message contains a TikTok link, replace the link and suppress embeds.
-                    let tiktok_reply = TIKTOK_REGEX.replace_all(content, &*TNKTOK_URL);
-                    let remove_embed = serenity::MessageFlags::SUPPRESS_EMBEDS;
-                    let embed_remover = serenity::EditMessage::new().flags(remove_embed);
+                // Get bools
+                let should_replace = *settings.user_map.get(&user_id).unwrap_or(&false);
+                let is_command = content.contains(".vid")
+                    || content.contains(".img")
+                    || content.contains(".mp3");
 
-                    new_message.clone().edit(ctx, embed_remover).await?;
-                    new_message.reply(ctx, tiktok_reply).await?;
+                // Bool check
+                match (is_command, should_replace) {
+                    (true, _) => {
+                        // If a command is present and has a tiktok url, suppress embeds.
+                        let remove_embed = serenity::MessageFlags::SUPPRESS_EMBEDS;
+                        let embed_remover = serenity::EditMessage::new().flags(remove_embed);
+                        new_message.clone().edit(ctx, embed_remover).await?;
+                    }
+                    (false, true) => {
+                        // If auto-replace is enabled and the message contains a TikTok link, replace the link and suppress embeds.
+                        let tiktok_reply = TIKTOK_REGEX.replace_all(content, &*TNKTOK_URL);
+                        let remove_embed = serenity::MessageFlags::SUPPRESS_EMBEDS;
+                        let embed_remover = serenity::EditMessage::new().flags(remove_embed);
+
+                        new_message.clone().edit(ctx, embed_remover).await?;
+                        new_message.reply(ctx, tiktok_reply).await?;
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
         }
         _ => {}
