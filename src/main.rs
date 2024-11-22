@@ -1,14 +1,18 @@
-mod database;
-mod tiklydown;
-use database::*;
 use poise::serenity_prelude as serenity;
 use regex::Regex;
 use std::fs;
 use std::sync::LazyLock;
-use tiklydown::{get_image, get_music, get_video};
 use tokio::sync::RwLock;
 
-include!("misc.rs"); // Contains constants: SLIDESHOW_CHUNK_VALUE, BOT_PREFIX, and HELP_COMMAND
+mod database;
+mod misc;
+mod instadown;
+mod tiklydown;
+
+use database::{get_token, get_user_setting, update_user_setting, UserSetting};
+use misc::{get_curr_time, ABOUT_COMMAND, BOT_PREFIX, HELP_COMMAND, SLIDESHOW_CHUNK_VALUE};
+use instadown::get_insta;
+use tiklydown::{get_image, get_music, get_video};
 
 // Define a regex pattern to match TikTok URLs.
 static TIKTOK_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -29,6 +33,8 @@ type Context<'a> = poise::Context<'a, Data, Error>;
 /// Command to display bot information.
 #[poise::command(slash_command, prefix_command)]
 async fn about(ctx: Context<'_>) -> Result<(), Error> {
+    // So that the interaction doesn't expire, we defer it.
+    ctx.defer().await?;
     ctx.say(ABOUT_COMMAND).await?;
     Ok(())
 }
@@ -36,6 +42,8 @@ async fn about(ctx: Context<'_>) -> Result<(), Error> {
 /// Command to display help information.
 #[poise::command(slash_command, prefix_command)]
 async fn help(ctx: Context<'_>) -> Result<(), Error> {
+    // So that the interaction doesn't expire, we defer it.
+    ctx.defer().await?;
     ctx.say(HELP_COMMAND).await?;
     Ok(())
 }
@@ -46,6 +54,9 @@ async fn autofix(
     ctx: Context<'_>,
     #[description = "Value to set (true or false)"] value: bool,
 ) -> Result<(), Error> {
+    // So that the interaction doesn't expire, we defer it.
+    ctx.defer().await?;
+
     let user_id = ctx.author().id.to_string();
 
     // Update user settings with the new value.
@@ -69,6 +80,9 @@ async fn check_autofix(
     ctx: Context<'_>,
     #[description = "Selected user"] user: Option<serenity::User>,
 ) -> Result<(), Error> {
+    // So that the interaction doesn't expire, we defer it.
+    ctx.defer().await?;
+
     let user_id = user
         .as_ref()
         .map_or_else(|| ctx.author().id.to_string(), |u| u.id.to_string());
@@ -83,14 +97,47 @@ async fn check_autofix(
     Ok(())
 }
 
+/// Command to download an Instagram reel.
+#[poise::command(slash_command, prefix_command)]
+async fn insta(
+    ctx: Context<'_>,
+    #[description = "Instagram post URL"] url: String,
+    #[description = "Type of file to download (vid or img)"] type_: Option<String>,
+) -> Result<(), Error> {
+    // So that the interaction doesn't expire, we defer it.
+    ctx.defer().await?;
+
+    // Determine the file extension based on the `type_` parameter.
+    let file_type = type_.unwrap_or_else(|| String::from("vid"));
+    let reel_filename = if &file_type == "vid" {
+        format!("{}.mp4", get_curr_time())
+    } else {
+        format!("{}.jpg", get_curr_time())
+    };
+
+    // Download the reel with the generated filename.
+    get_insta(&url, &reel_filename).await?;
+
+    // Create and send the video or image attachment.
+    let attachment = serenity::CreateAttachment::path(std::path::Path::new(&reel_filename)).await?;
+    ctx.send(poise::reply::CreateReply {
+        attachments: vec![attachment],
+        ..Default::default()
+    })
+    .await?;
+
+    // Remove the file after sending to free up resources.
+    fs::remove_file(&reel_filename)?;
+    Ok(())
+}
+
 /// Command to download a TikTok video.
 #[poise::command(slash_command, prefix_command)]
 async fn vid(ctx: Context<'_>, #[description = "TikTok URL"] url: String) -> Result<(), Error> {
     // So that the interaction doesn't expire, we defer it.
     ctx.defer().await?;
 
-    let user_id = ctx.author().id.to_string();
-    let video_filename = format!("{}.mp4", user_id); // Video file named after user ID
+    let video_filename = format!("{}.mp4", get_curr_time());
     get_video(&url, &video_filename).await?;
 
     // Create and send the video attachment.
@@ -113,8 +160,8 @@ async fn img(ctx: Context<'_>, #[description = "TikTok URL"] url: String) -> Res
     // So that the interaction doesn't expire, we defer it.
     ctx.defer().await?;
 
-    let user_id = ctx.author().id.to_string();
-    let image_filenames = get_image(&url, &user_id).await?; // Get images as a vector of filenames
+    let timestamp = get_curr_time();
+    let image_filenames = get_image(&url, &timestamp).await?; // Get images as a vector of filenames
 
     // Create attachments for each image file.
     let mut attachments = Vec::with_capacity(image_filenames.len());
@@ -145,8 +192,7 @@ async fn mp3(ctx: Context<'_>, #[description = "TikTok URL"] url: String) -> Res
     // So that the interaction doesn't expire, we defer it.
     ctx.defer().await?;
 
-    let user_id = ctx.author().id.to_string();
-    let music_filename = format!("{}.mp3", user_id); // Music file named after user ID
+    let music_filename = format!("{}.mp3", get_curr_time());
     get_music(&url, &music_filename).await?;
 
     // Create and send the music attachment.
@@ -185,6 +231,7 @@ async fn main() {
         vid(),
         img(),
         mp3(),
+        insta(),
         help(),
         about(),
     ];

@@ -60,7 +60,7 @@ pub async fn get_video(
 
 pub async fn get_image(
     i_url: &str,
-    userid: &str,
+    identifier: &str,
 ) -> Result<Vec<String>, Box<dyn std::error::Error + Send + Sync>> {
     let url = format_url(i_url);
     let response = REQWEST_CLIENT.get(&url).send().await?;
@@ -71,7 +71,7 @@ pub async fn get_image(
     if let Some(images) = api_response.images {
         for (index, image) in images.iter().enumerate() {
             let image_response = REQWEST_CLIENT.get(&image.image_url).send().await?;
-            let filename = format!("{}_{}.jpg", userid, index);
+            let filename = format!("{}_{}.jpg", identifier, index);
             let mut file = File::create(&filename)?;
             let content = image_response.bytes().await?;
             file.write_all(&content)?;

@@ -13,12 +13,14 @@ check_autofix = "Check autofix status"
 vid = "Downloads video from a tiktok video url and reuploads it"
 mp3 = "Downloads audio from a tiktok video url and reuploads it"
 img = "Downloads images from a tiktok slideshow url and reuploads it"
+insta = "Scuffed instagram download command"
 
 [commands.example]
 help = ".help"
 about = ".about"
 autofix = ".autofix true"
 check_autofix = ".check_autofix @yuvlian"
-vid = ".vid https://vt.tiktok.com/ZS2fMDLkU/"
-mp3 = ".mp3 https://vt.tiktok.com/ZS2fMDLkU/"
-img = ".img https://vt.tiktok.com/ZS2g5AWKk/"
+vid = ".vid <https://vt.tiktok.com/ZS2fMDLkU/>"
+mp3 = ".mp3 <https://vt.tiktok.com/ZS2fMDLkU/>"
+img = ".img <https://vt.tiktok.com/ZS2g5AWKk/>"
+insta = ".insta [link here] [vid/img]" \# this defaults to vid

@@ -1,0 +1,1 @@
+TODO: make each command a singular rust file
